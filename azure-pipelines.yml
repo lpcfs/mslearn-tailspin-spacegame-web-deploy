@@ -5,8 +5,8 @@ variables:
   buildConfiguration: 'Release'
 
 schedules:
-    - cron: '0 3 * * *'
-      displayName: 'Deploy every day at 3 A.M.'
+    - cron: '0 21 05 * *'
+      displayName: 'cron'
       branches:
         include:
         - main
@@ -133,7 +133,7 @@ stages:
   - stage: 'Test'
     displayName: 'Test-env. deploy'
     dependsOn: Dev
-    #condition: eq(variables['Build.Reason'], 'Schedule')
+    condition: eq(variables['Build.Reason'], 'Schedule')
     jobs:
     - deployment: Deploy
       pool:
