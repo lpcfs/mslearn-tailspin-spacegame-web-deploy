@@ -1,0 +1,178 @@
+trigger:
+  - '*'
+  
+variables:
+  buildConfiguration: 'Release'
+
+schedules:
+    - cron: '0 3 * * *'
+      displayName: 'Deploy every day at 3 A.M.'
+      branches:
+        include:
+        - main
+      always: false 
+  
+stages:
+  - stage: 'Build'
+    displayName: 'Build'
+    jobs: 
+    - job: 'Build'
+      displayName: 'Build job'
+      pool:
+        vmImage: 'ubuntu-20.04'
+        demands:
+        - npm
+  
+      variables:
+        wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
+        dotnetSdkVersion: '5.x'
+  
+      steps:
+      - task: gitversion/setup@0
+        displayName: "Setup of GitVersion"
+        inputs:
+          versionSpec: '5.x'
+
+      - task: gitversion/execute@0
+        displayName: "Generating version using GitVersion"
+        inputs:
+          targetPath: '$(Build.SourcesDirectory)'
+          updateAssemblyInfo: true
+
+      - powershell: echo "##vso[build.updatebuildnumber]$(GitVersion.LegacySemVer)"
+        displayName: Update build number using generated version
+
+      - powershell: |
+          echo "##vso[task.setvariable variable=LegacySemVerVersion;]$(GitVersion.LegacySemVer)" > pipeline.env
+          echo "##vso[task.setvariable variable=SemVerVersion;]$(GitVersion.NuGetVersionV2)" >> pipeline.env
+          $dockerCompatibleGitVersion = '$(GitVersion.FullSemVer)' -replace '\+','-'
+          echo "##vso[task.setvariable variable=DockerVersion;]$dockerCompatibleGitVersion" >> pipeline.env
+        displayName: Exported generated version into environment file
+
+      - publish: pipeline.env 
+        displayName: Publish environment file
+        artifact: environment
+
+      - task: UseDotNet@2
+        displayName: 'Use .NET SDK $(dotnetSdkVersion)'
+        inputs:
+          version: '$(dotnetSdkVersion)'
+  
+      # - task: Npm@1
+      #   displayName: 'Run npm install'
+      #   inputs:
+      #     verbose: false
+  
+      # - script: './node_modules/.bin/node-sass $(wwwrootDir) --output $(wwwrootDir)'
+      #   displayName: 'Compile Sass assets'
+  
+      # - task: gulp@1
+      #   displayName: 'Run gulp tasks'
+  
+      - script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'
+        displayName: 'Write build info'
+        workingDirectory: $(wwwrootDir)
+  
+      - task: DotNetCoreCLI@2
+        displayName: 'Restore project dependencies'
+        inputs:
+          command: 'restore'
+          projects: '**/*.csproj'
+  
+      - task: DotNetCoreCLI@2
+        displayName: 'Build the project - $(buildConfiguration)'
+        inputs:
+          command: 'build'
+          arguments: '--no-restore --configuration $(buildConfiguration)'
+          projects: '**/*.csproj'
+  
+      - task: DotNetCoreCLI@2
+        displayName: 'Publish the project - $(buildConfiguration)'
+        inputs:
+          command: 'publish'
+          projects: '**/*.csproj'
+          publishWebProjects: false
+          arguments: '--no-build --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/$(buildConfiguration)'
+          zipAfterPublish: true
+  
+      - publish: '$(Build.ArtifactStagingDirectory)'
+        artifact: drop
+  
+  - stage: 'Dev'
+    displayName: 'Dev-env. deploy'
+    dependsOn: Build
+    jobs:
+    - deployment: Deploy
+      pool:
+        vmImage: 'ubuntu-20.04'
+      environment: dev
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              artifact: drop
+              displayName: Download drop folder
+
+            - download: current
+              artifact: environment
+              displayName: Download environment folder
+
+            - pwsh: cat $(Pipeline.Workspace)/environment/pipeline.env
+              displayName: Restore environment variables
+
+            - pwsh: 'echo "LegacySemVerVersion: $(LegacySemVerVersion)"'
+
+            - task: AzureWebApp@1
+              displayName: 'Azure App Service Deploy: website'
+              inputs:
+                azureSubscription: 'sc-deploy-tailspin-space-game'
+                appName: 'lp-myweb-dev'
+                package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+            
+              
+  - stage: 'Test'
+    displayName: 'Test-env. deploy'
+    dependsOn: Dev
+    #condition: eq(variables['Build.Reason'], 'Schedule')
+    jobs:
+    - deployment: Deploy
+      pool:
+        vmImage: 'ubuntu-20.04'
+      environment: test
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              artifact: drop
+
+               
+            - task: AzureWebApp@1
+              displayName: 'Azure App Service Deploy: website'
+              inputs:
+                azureSubscription: 'sc-deploy-tailspin-space-game'
+                appName: 'lp-myweb-tst'
+                package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+
+  - stage: 'Staging'
+    displayName: 'Staging-env. deploy'
+    dependsOn: Test
+    jobs:
+    - deployment: Deploy
+      pool:
+        vmImage: 'ubuntu-20.04'
+      environment: staging
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              artifact: drop
+
+            - task: AzureWebApp@1
+              displayName: 'Azure App Service Deploy: website'
+              inputs:
+                azureSubscription: 'sc-deploy-tailspin-space-game'
+                appName: 'lp-myweb-stg'
+                package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
