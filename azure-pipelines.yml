@@ -129,7 +129,7 @@ stages:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
                 appName: 'lp-myweb-dev'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
-                appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test" -ASPNETCORE_ENVIRONMENT "Development"
+                appSettings: -ASPNETCORE_AppVersion "$(LegacySemVerVersion)" -ASPNETCORE_TestValue "test" -ASPNETCORE_ENVIRONMENT "Development"
             
               
   - stage: 'Test'
@@ -155,7 +155,7 @@ stages:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
                 appName: 'lp-myweb-tst'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
-                appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test" -ASPNETCORE_ENVIRONMENT "Test"
+                appSettings: -ASPNETCORE_AppVersion "$(LegacySemVerVersion)" -ASPNETCORE_TestValue "test" -ASPNETCORE_ENVIRONMENT "Test"
 
   - stage: 'Staging'
     displayName: 'Staging-env. deploy'
@@ -178,4 +178,4 @@ stages:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
                 appName: 'lp-myweb-stg'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
-                appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test" -ASPNETCORE_ENVIRONMENT "Staging"
+                appSettings: -ASPNETCORE_AppVersion "$(LegacySemVerVersion)" -ASPNETCORE_TestValue "test" -ASPNETCORE_ENVIRONMENT "Staging"
