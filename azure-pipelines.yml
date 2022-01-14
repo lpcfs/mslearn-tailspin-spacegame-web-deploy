@@ -121,6 +121,8 @@ stages:
             - pwsh: cat $(Pipeline.Workspace)/environment/pipeline.env
               displayName: Restore environment variables
 
+            - pwsh: 'echo "LegacySemVerVersion: $(LegacySemVerVersion)"'
+
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
               inputs:
