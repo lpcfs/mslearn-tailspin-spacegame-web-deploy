@@ -28,6 +28,21 @@ stages:
         dotnetSdkVersion: '5.x'
   
       steps:
+        
+      - task: gitversion/setup@0
+        displayName: "Setup of GitVersion"
+        inputs:
+          versionSpec: '5.x'
+
+      - task: gitversion/execute@0
+        displayName: "Generating version using GitVersion"
+        inputs:
+          targetPath: '${{ parameters.targetPath }}'
+          updateAssemblyInfo: true
+
+      - powershell: echo "##vso[build.updatebuildnumber]$(GitVersion.LegacySemVer)"
+        displayName: Update build number using generated version
+
       - task: UseDotNet@2
         displayName: 'Use .NET SDK $(dotnetSdkVersion)'
         inputs:
