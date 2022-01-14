@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TailSpin.SpaceGame.Web.Models;
-
+using Microsoft.Extensions.Configuration;
 namespace TailSpin.SpaceGame.Web.Controllers
 {
     public class HomeController : Controller
@@ -14,14 +14,17 @@ namespace TailSpin.SpaceGame.Web.Controllers
         private readonly IDocumentDBRepository<Score> _scoreRepository;
         // User profile repository.
         private readonly IDocumentDBRepository<Profile> _profileRespository;
+        private readonly IConfiguration _config;
 
         public HomeController(
             IDocumentDBRepository<Score> scoreRepository,
-            IDocumentDBRepository<Profile> profileRespository
+            IDocumentDBRepository<Profile> profileRespository,
+            IConfiguration config
             )
         {
             _scoreRepository = scoreRepository;
             _profileRespository = profileRespository;
+            _config = config;
         }
 
         public async Task<IActionResult> Index(
@@ -38,6 +41,7 @@ namespace TailSpin.SpaceGame.Web.Controllers
                 PageSize = pageSize,
                 SelectedMode = mode,
                 SelectedRegion = region,
+                AppVersion = _config.GetValue<string>("AppVersion"),
 
                 GameModes = new List<string>()
                 {

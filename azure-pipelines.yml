@@ -129,6 +129,7 @@ stages:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
                 appName: 'lp-myweb-dev'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+                appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test"
             
               
   - stage: 'Test'
