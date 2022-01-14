@@ -94,6 +94,7 @@ stages:
                 azureSubscription: 'Resource Manager - Tailspin - Space Game'
                 appName: 'lp-myweb-dev'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+            
               
   - stage: 'Test'
     displayName: 'Test-env. deploy'
@@ -113,12 +114,14 @@ stages:
             - download: current
               artifact: drop
 
+               
             - task: AzureWebApp@1
-              displayName: 'Azure App Service Deploy: website'
               inputs:
                 azureSubscription: 'Resource Manager - Tailspin - Space Game'
-                appName: 'lp-myweb-tst'
-                package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'                
+                appType: 'webAppLinux'
+                appName: 'lp-myweb-dev'
+                package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+                runtimeStack: 'DOTNETCORE|5.0'
 
   - stage: 'Staging'
     displayName: 'Staging-env. deploy'
