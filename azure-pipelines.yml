@@ -42,6 +42,17 @@ stages:
       - powershell: echo "##vso[build.updatebuildnumber]$(GitVersion.LegacySemVer)"
         displayName: Update build number using generated version
 
+      - powershell: |
+          echo "##vso[task.setvariable variable=LegacySemVerVersion;]$(GitVersion.LegacySemVer)" > pipeline.env
+          echo "##vso[task.setvariable variable=SemVerVersion;]$(GitVersion.NuGetVersionV2)" >> pipeline.env
+          $dockerCompatibleGitVersion = '$(GitVersion.FullSemVer)' -replace '\+','-'
+          echo "##vso[task.setvariable variable=DockerVersion;]$dockerCompatibleGitVersion" >> pipeline.env
+        displayName: Exported generated version into environment file
+
+      - publish: pipeline.env 
+        displayName: Publish environment file
+        artifact: environment
+
       - task: UseDotNet@2
         displayName: 'Use .NET SDK $(dotnetSdkVersion)'
         inputs:
@@ -101,6 +112,14 @@ stages:
             steps:
             - download: current
               artifact: drop
+              displayName: Download drop folder
+
+            - download: current
+              artifact: environment
+              displayName: Download environment folder
+
+            - pwsh: cat $(Pipeline.Workspace)/environment/pipeline.env
+              displayName: Restore environment variables
 
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
