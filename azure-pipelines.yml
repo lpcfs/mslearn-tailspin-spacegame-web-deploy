@@ -105,8 +105,6 @@ stages:
       pool:
         vmImage: 'ubuntu-20.04'
       environment: test
-      variables:
-      - group: 'Release'
       strategy:
         runOnce:
           deploy:
@@ -131,8 +129,6 @@ stages:
       pool:
         vmImage: 'ubuntu-20.04'
       environment: staging
-      variables:  
-      - group: 'Release'
       strategy:
         runOnce:
           deploy:
