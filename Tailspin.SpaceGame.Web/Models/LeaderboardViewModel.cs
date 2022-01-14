@@ -30,6 +30,7 @@ namespace TailSpin.SpaceGame.Web.Models
         public int TotalResults { get; set; }
 
         public string AppVersion { get; set; }
+        public string ApiEndpoint { get; set; }
     }
 
     /// <summary>

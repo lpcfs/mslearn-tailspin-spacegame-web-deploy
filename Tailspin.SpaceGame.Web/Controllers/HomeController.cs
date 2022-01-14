@@ -42,6 +42,7 @@ namespace TailSpin.SpaceGame.Web.Controllers
                 SelectedMode = mode,
                 SelectedRegion = region,
                 AppVersion = _config.GetValue<string>("AppVersion"),
+                ApiEndpoint = _config.GetValue<string>("ApiEndpoint"),
 
                 GameModes = new List<string>()
                 {
