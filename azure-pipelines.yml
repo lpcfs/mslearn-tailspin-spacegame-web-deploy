@@ -117,10 +117,8 @@ stages:
             - download: current
               artifact: environment
               displayName: Download environment folder
-
             - pwsh: cat $(Pipeline.Workspace)/environment/pipeline.env
               displayName: Restore environment variables
-
             - pwsh: 'echo "LegacySemVerVersion: $(LegacySemVerVersion)"'
 
             - task: AzureWebApp@1
@@ -148,6 +146,12 @@ stages:
             - download: current
               artifact: drop
 
+            - download: current
+              artifact: environment
+              displayName: Download environment folder
+            - pwsh: cat $(Pipeline.Workspace)/environment/pipeline.env
+              displayName: Restore environment variables
+            - pwsh: 'echo "LegacySemVerVersion: $(LegacySemVerVersion)"'
                
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
@@ -171,6 +175,13 @@ stages:
             steps:
             - download: current
               artifact: drop
+
+            - download: current
+              artifact: environment
+              displayName: Download environment folder
+            - pwsh: cat $(Pipeline.Workspace)/environment/pipeline.env
+              displayName: Restore environment variables
+            - pwsh: 'echo "LegacySemVerVersion: $(LegacySemVerVersion)"'
 
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
