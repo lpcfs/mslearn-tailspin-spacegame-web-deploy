@@ -5,8 +5,8 @@ variables:
   buildConfiguration: 'Release'
 
 schedules:
-    - cron: '0 21 05 * *'
-      displayName: 'cron'
+    - cron: '0 7 * * *'
+      displayName: 'Deploy every day at 7 A.M.'
       branches:
         include:
         - main
@@ -99,7 +99,7 @@ stages:
         artifact: drop
   
   - stage: 'Dev'
-    displayName: 'Dev-env. deploy'
+    displayName: 'Dev (qa)'
     dependsOn: Build
     jobs:
     - deployment: Deploy
@@ -125,13 +125,13 @@ stages:
               displayName: 'Azure App Service Deploy: website'
               inputs:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
-                appName: 'lp-myweb-dev'
+                appName: 'dev-my-app'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
                 appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test" -ASPNETCORE_ENVIRONMENT "Development"
             
               
   - stage: 'Test'
-    displayName: 'Test-env. deploy'
+    displayName: 'Test (qa) (7h)'
     dependsOn: Dev
     condition: eq(variables['Build.Reason'], 'Schedule')
     jobs:
@@ -157,12 +157,12 @@ stages:
               displayName: 'Azure App Service Deploy: website'
               inputs:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
-                appName: 'lp-myweb-tst'
+                appName: 'tst-my-app'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
                 appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test" -ASPNETCORE_ENVIRONMENT "Test"
 
   - stage: 'Staging'
-    displayName: 'Staging-env. deploy'
+    displayName: 'Staging (prd) (approval)'
     dependsOn: Test
     jobs:
     - deployment: Deploy
@@ -187,6 +187,6 @@ stages:
               displayName: 'Azure App Service Deploy: website'
               inputs:
                 azureSubscription: 'sc-deploy-tailspin-space-game'
-                appName: 'lp-myweb-stg'
+                appName: 'stg-my-app'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
                 appSettings: -AppVersion "$(LegacySemVerVersion)" -TestValue "test" -ASPNETCORE_ENVIRONMENT "Staging"
