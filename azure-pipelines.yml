@@ -6,20 +6,13 @@ variables:
   serviceConnection: 'sc-deploy-tailspin-space-game'
 
 schedules:
-  - cron: '0 11 * * *'
+  - cron: '0 0 * * *'
     displayName: 'Deploy every day at 7 A.M.'
     branches:
       include:
       - development
     always: false 
 
-  - cron: '0 24 * * *'
-    displayName: 'Deploy every day at 24 for the main if there is a chnage in the'
-    branches:
-      include:
-      - main
-    always: false 
-  
 stages:
   - stage: 'Build'
     displayName: 'Build'
@@ -132,6 +125,7 @@ stages:
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
               inputs:
+                appType: webAppLinux
                 azureSubscription: $(serviceConnection)
                 appName: 'dev-my-app'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
@@ -164,6 +158,7 @@ stages:
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
               inputs:
+                appType: webAppLinux
                 azureSubscription: $(serviceConnection)
                 appName: 'tst-my-app'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
@@ -194,6 +189,7 @@ stages:
             - task: AzureWebApp@1
               displayName: 'Azure App Service Deploy: website'
               inputs:
+                appType: webAppLinux
                 azureSubscription: $(serviceConnection)
                 appName: 'stg-my-app'
                 package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'

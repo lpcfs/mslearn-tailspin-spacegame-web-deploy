@@ -13,17 +13,17 @@ namespace TailSpin.SpaceGame.Web.Controllers
         // High score repository.
         private readonly IDocumentDBRepository<Score> _scoreRepository;
         // User profile repository.
-        private readonly IDocumentDBRepository<Profile> _profileRespository;
+        private readonly IDocumentDBRepository<Profile> _profileRepository;
         private readonly IConfiguration _config;
 
         public HomeController(
             IDocumentDBRepository<Score> scoreRepository,
-            IDocumentDBRepository<Profile> profileRespository,
+            IDocumentDBRepository<Profile> profileRepository,
             IConfiguration config
             )
         {
             _scoreRepository = scoreRepository;
-            _profileRespository = profileRespository;
+            _profileRepository = profileRepository;
             _config = config;
         }
 
@@ -99,7 +99,7 @@ namespace TailSpin.SpaceGame.Web.Controllers
                 var profiles = new List<Task<Profile>>();
                 foreach (var score in scores)
                 {
-                    profiles.Add(_profileRespository.GetItemAsync(score.ProfileId));
+                    profiles.Add(_profileRepository.GetItemAsync(score.ProfileId));
                 }
                 Task<Profile>.WaitAll(profiles.ToArray());
 
@@ -120,7 +120,7 @@ namespace TailSpin.SpaceGame.Web.Controllers
             try
             {
                 // Fetch the user profile with the given identifier.
-                return View(new ProfileViewModel { Profile = await _profileRespository.GetItemAsync(id), Rank = rank });
+                return View(new ProfileViewModel { Profile = await _profileRepository.GetItemAsync(id), Rank = rank });
             }
             catch (Exception)
             {
