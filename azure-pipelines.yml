@@ -6,7 +6,7 @@ variables:
   serviceConnection: 'sc-deploy-tailspin-space-game'
 
 schedules:
-  - cron: '*/1 * * * *'
+  - cron: '*/5 * * * *'
     displayName: 'Deploy every day at 7 A.M.'
     branches:
       include:
